@@ -187,6 +187,12 @@
                     <Button Style="{StaticResource ViewerButton}" Click="OnTagsClick" Margin="4,0">
                         <TextBlock Text="{Binding TagsButtonText}"/>
                     </Button>
+                    <Button Style="{StaticResource ViewerButton}" Click="OnReportClick" Margin="4,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="13" Margin="0,0,7,0"/>
+                            <TextBlock Text="RELATÓRIO"/>
+                        </StackPanel>
+                    </Button>
                     <Button Style="{StaticResource ViewerButton}" Click="OnMonitorClick" Margin="4,0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE71D;" FontFamily="Segoe MDL2 Assets" FontSize="13" Margin="0,0,7,0"/>

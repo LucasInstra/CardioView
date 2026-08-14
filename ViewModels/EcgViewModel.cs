@@ -84,6 +84,9 @@ public sealed class EcgViewModel : INotifyPropertyChanged
     public IReadOnlyList<RhythmFinding> DiagnosisFindings => _loaded ? _report.Findings : Array.Empty<RhythmFinding>();
     public bool DiagnosisHasData => _loaded && _report.HasData;
     public bool IsDiagnosisOpen => _isDiagnosisOpen;
+    public bool HasLoaded => _loaded;
+    public string RecordName => _recordName;
+    public RhythmReport Report => _report;
 
     public void ToggleDiagnosis()
     {
