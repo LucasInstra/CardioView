@@ -30,6 +30,9 @@ A interface é totalmente em português.
 - **FC** calculada pelas anotações do `.atr` (fallback: detecção QRS).
 - Marcadores com **símbolo em negrito** sobre o traço; passe o mouse sobre uma tag para ver o significado.
 - Botão **LEGENDAS**: ao clicar, mostra à direita o significado das tags presentes no arquivo.
+- Botão **DIAGNÓSTICO**: análise automática das anotações (`.atr`) e sugestão de possíveis condições — contagem de batimentos por tipo, PVCs/APCs, salvas, marcadores de ritmo `(N`, `(VT`, `(AFIB`…, FC e ruído — com nível de gravidade (INFO / ATENÇÃO / CRÍTICO) e resumo em pt-BR.
+  - Achados repetidos são **agrupados por condição** com contagem de episódios (×N), duração total e horário do 1º episódio (ex.: `3 episódios · total 4 min 20 s · 1º às 00:00:10`).
+  - O resumo **lidera pelas condições críticas** e cita o ritmo de base em segundo plano (ex.: *"Episódios de taquicardia ventricular; Extrassístoles ventriculares (PVC); em ritmo sinusal normal"*).
 - Faixa inferior (**overview**) com todo o registro: clique/arraste para navegar (seek).
 - **TAGS: LIG./DESL.** para alternar a exibição dos marcadores.
 
@@ -68,7 +71,7 @@ CardioView/
 ├── Controls/          WaveformControl, AnnotationOverview, AnnotationPalette
 ├── Converters/        Conversores de exibição (estados)
 ├── Models/            Patient, PatientState, VitalSigns
-├── Services/          Simulação, alarmes, leitor MIT-BIH (.hea/.atr), QRS, configurações
+├── Services/          Simulação, alarmes, leitor MIT-BIH (.hea/.atr), QRS, análise de ritmo, configurações
 ├── Simulation/        Geradores de formas de onda (ECG, SpO2, PA, EtCO2) e simulador
 ├── ViewModels/        MonitorViewModel, EcgViewModel
 ├── Views/             MainWindow (monitor), EcgViewerWindow (ECG)
