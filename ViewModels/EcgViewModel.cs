@@ -46,6 +46,8 @@ public sealed class EcgViewModel : INotifyPropertyChanged
     private int _hr;
     private string _status = "Clique em 'CARREGAR ECG' e selecione um arquivo .hea (MIT-BIH).";
     private string _annotationText = "";
+    private RhythmReport _report = RhythmAnalyzer.Analyze(Array.Empty<MitBihAnnotation>(), 360);
+    private bool _isDiagnosisOpen;
 
     public event EventHandler? Updated;
 
@@ -77,6 +79,17 @@ public sealed class EcgViewModel : INotifyPropertyChanged
     public string AnnotationText => _annotationText;
     public string StatusText => _status;
     public IReadOnlyList<string> LeadNames => _leadNames;
+
+    public string DiagnosisSummary => _loaded ? _report.Summary : "";
+    public IReadOnlyList<RhythmFinding> DiagnosisFindings => _loaded ? _report.Findings : Array.Empty<RhythmFinding>();
+    public bool DiagnosisHasData => _loaded && _report.HasData;
+    public bool IsDiagnosisOpen => _isDiagnosisOpen;
+
+    public void ToggleDiagnosis()
+    {
+        _isDiagnosisOpen = !_isDiagnosisOpen;
+        OnPropertyChanged(nameof(IsDiagnosisOpen));
+    }
 
     public int SelectedLead
     {
@@ -118,6 +131,7 @@ public sealed class EcgViewModel : INotifyPropertyChanged
             _loaded = true;
 
             _annotations = LoadAnnotations(heaPath, rec.Name);
+            _report = RhythmAnalyzer.Analyze(_annotations, _sampleRate);
             _annotationText = BuildAnnotationText();
             BuildLegend();
 
@@ -127,6 +141,9 @@ public sealed class EcgViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(HrText));
             OnPropertyChanged(nameof(AnnotationText));
             OnPropertyChanged(nameof(Legend));
+            OnPropertyChanged(nameof(DiagnosisSummary));
+            OnPropertyChanged(nameof(DiagnosisFindings));
+            OnPropertyChanged(nameof(DiagnosisHasData));
 
             LoadSignal();
             _playing = true;

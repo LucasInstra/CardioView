@@ -66,6 +66,8 @@ public partial class EcgViewerWindow : Window
 
     private void OnLegendClick(object sender, RoutedEventArgs e) => _vm.ToggleLegend();
 
+    private void OnDiagnosisClick(object sender, RoutedEventArgs e) => _vm.ToggleDiagnosis();
+
     private void OnMonitorClick(object sender, RoutedEventArgs e)
     {
         var win = new MainWindow { WindowStartupLocation = WindowStartupLocation.CenterScreen };
