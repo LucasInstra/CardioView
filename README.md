@@ -35,6 +35,7 @@ A interface é totalmente em português.
   - O resumo **lidera pelas condições críticas** e cita o ritmo de base em segundo plano (ex.: *"Episódios de taquicardia ventricular; Extrassístoles ventriculares (PVC); em ritmo sinusal normal"*).
 - Faixa inferior (**overview**) com todo o registro: clique/arraste para navegar (seek).
 - **TAGS: LIG./DESL.** para alternar a exibição dos marcadores.
+- Botão **RELATÓRIO**: gera um PDF (A4) com o diagnóstico em formato clínico — resumo com métricas (FC média/mín/máx, total de batimentos, achados por gravidade), **interpretação clínica** em linguagem simples sobre o que os achados podem significar, tabela detalhada de achados com nível de gravidade, contagem de batimentos por tipo e um **snapshot de alta resolução do traçado** (fundo branco).
 
 ---
 
@@ -71,7 +72,7 @@ CardioView/
 ├── Controls/          WaveformControl, AnnotationOverview, AnnotationPalette
 ├── Converters/        Conversores de exibição (estados)
 ├── Models/            Patient, PatientState, VitalSigns
-├── Services/          Simulação, alarmes, leitor MIT-BIH (.hea/.atr), QRS, análise de ritmo, configurações
+├── Services/          Simulação, alarmes, leitor MIT-BIH (.hea/.atr), QRS, análise de ritmo, interpretação clínica, relatório PDF, configurações
 ├── Simulation/        Geradores de formas de onda (ECG, SpO2, PA, EtCO2) e simulador
 ├── ViewModels/        MonitorViewModel, EcgViewModel
 ├── Views/             MainWindow (monitor), EcgViewerWindow (ECG)
