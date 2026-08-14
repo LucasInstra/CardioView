@@ -42,6 +42,13 @@ public sealed class WaveformControl : FrameworkElement
     public double PixelsPerUnit { get; set; } = 100;
     public double ZeroYRatio { get; set; } = 0.5;
 
+    private Color _cachedTraceColor;
+    private bool _tracePensReady;
+    private Pen? _glowPen;
+    private Pen? _corePen;
+    private Pen? _refPen;
+    private readonly Dictionary<Color, Pen> _annotationPens = new();
+
     public void Refresh() => InvalidateVisual();
 
     protected override void OnRender(DrawingContext dc)
@@ -119,16 +126,12 @@ public sealed class WaveformControl : FrameworkElement
         var refs = HorizontalRefs;
         if (refs is null || refs.Count == 0) return;
 
-        Color trace = TraceColor;
-        var brush = new SolidColorBrush(Color.FromArgb(130, trace.R, trace.G, trace.B));
-        brush.Freeze();
-        var pen = new Pen(brush, 1) { DashStyle = new DashStyle(new double[] { 4, 4 }, 0) };
-        pen.Freeze();
+        EnsureTracePens(TraceColor);
 
         foreach (double v in refs)
         {
             double y = ZeroYRatio * h - v * PixelsPerUnit;
-            dc.DrawLine(pen, new Point(0, y), new Point(w, y));
+            dc.DrawLine(_refPen!, new Point(0, y), new Point(w, y));
         }
     }
 
@@ -172,22 +175,61 @@ public sealed class WaveformControl : FrameworkElement
         }
 
         Color trace = TraceColor;
-        var glowBrush = new SolidColorBrush(Color.FromArgb(40, trace.R, trace.G, trace.B));
-        glowBrush.Freeze();
-        var glowPen = new Pen(glowBrush, 6) { LineJoin = PenLineJoin.Round };
-        glowPen.Freeze();
-        var coreBrush = new SolidColorBrush(trace);
-        coreBrush.Freeze();
-        var corePen = new Pen(coreBrush, 2) { LineJoin = PenLineJoin.Round };
-        corePen.Freeze();
+        EnsureTracePens(trace);
 
         geo.Freeze();
-        dc.DrawGeometry(null, glowPen, geo);
-        dc.DrawGeometry(null, corePen, geo);
+        dc.DrawGeometry(null, _glowPen!, geo);
+        dc.DrawGeometry(null, _corePen!, geo);
+    }
+
+    private void EnsureTracePens(Color trace)
+    {
+        if (_tracePensReady && _cachedTraceColor == trace)
+            return;
+
+        _cachedTraceColor = trace;
+
+        var glowBrush = new SolidColorBrush(Color.FromArgb(40, trace.R, trace.G, trace.B));
+        glowBrush.Freeze();
+        _glowPen = new Pen(glowBrush, 6) { LineJoin = PenLineJoin.Round };
+        _glowPen.Freeze();
+
+        var coreBrush = new SolidColorBrush(trace);
+        coreBrush.Freeze();
+        _corePen = new Pen(coreBrush, 2) { LineJoin = PenLineJoin.Round };
+        _corePen.Freeze();
+
+        var refBrush = new SolidColorBrush(Color.FromArgb(130, trace.R, trace.G, trace.B));
+        refBrush.Freeze();
+        _refPen = new Pen(refBrush, 1) { DashStyle = new DashStyle(new double[] { 4, 4 }, 0) };
+        _refPen.Freeze();
+
+        _tracePensReady = true;
+    }
+
+    private Pen AnnotationPen(Color col)
+    {
+        if (_annotationPens.TryGetValue(col, out var pen))
+            return pen;
+
+        var brush = new SolidColorBrush(col);
+        brush.Freeze();
+        pen = new Pen(brush, 1);
+        pen.Freeze();
+        _annotationPens[col] = pen;
+        return pen;
     }
 
     private static readonly Typeface LabelTypeface = new("Segoe UI");
     private static readonly Typeface BoldLabelTypeface = new(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal);
+    private static readonly SolidColorBrush AuxBrush = CreateFrozenBrush(0x8E, 0xC9, 0xD0);
+
+    private static SolidColorBrush CreateFrozenBrush(byte r, byte g, byte b)
+    {
+        var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
+        brush.Freeze();
+        return brush;
+    }
 
     private void DrawAnnotations(DrawingContext dc, double w, double h)
     {
@@ -214,11 +256,7 @@ public sealed class WaveformControl : FrameworkElement
             int i = rel - start;
             double x = w - (count - 1 - i) * dx;
             double y = zeroY - samples[rel] * ppm;
-            Color col = AnnotationPalette.For(ann);
-            var brush = new SolidColorBrush(col);
-            brush.Freeze();
-            var pen = new Pen(brush, 1);
-            pen.Freeze();
+            var pen = AnnotationPen(AnnotationPalette.For(ann));
 
             if (ann.IsQuality)
             {
@@ -233,17 +271,15 @@ public sealed class WaveformControl : FrameworkElement
             string text = rhythm ? "+" : ann.Symbol.ToString();
             double ppd = VisualTreeHelper.GetDpi(this).PixelsPerDip;
             var ft = new FormattedText(text, CultureInfo.InvariantCulture,
-                FlowDirection.LeftToRight, BoldLabelTypeface, 11, brush, ppd) { MaxTextWidth = 48 };
+                FlowDirection.LeftToRight, BoldLabelTypeface, 11, pen.Brush, ppd) { MaxTextWidth = 48 };
             double ty = y - ft.Height - 1;
             if (ty < 0) ty = y + tickLen + 1;
             dc.DrawText(ft, new Point(x + 2, ty));
 
             if (rhythm && !string.IsNullOrEmpty(ann.Aux))
             {
-                var auxBrush = new SolidColorBrush(Color.FromRgb(0x8E, 0xC9, 0xD0));
-                auxBrush.Freeze();
                 var at = new FormattedText(ann.Aux, CultureInfo.InvariantCulture,
-                    FlowDirection.LeftToRight, LabelTypeface, 9, auxBrush, ppd) { MaxTextWidth = 60 };
+                    FlowDirection.LeftToRight, LabelTypeface, 9, AuxBrush, ppd) { MaxTextWidth = 60 };
                 dc.DrawText(at, new Point(x + 2, y + tickLen + 1));
             }
         }

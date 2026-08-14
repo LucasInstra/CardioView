@@ -35,20 +35,7 @@ public sealed class MonitorViewModel : INotifyPropertyChanged
     private string _statusMessage = "";
     private double _statusClock;
 
-    private static readonly string[] Names =
-    {
-        nameof(TimeText), nameof(DateText), nameof(PatientLabel),
-        nameof(HrText), nameof(Spo2Text), nameof(RespText),
-        nameof(Temp1Text), nameof(Temp2Text), nameof(StText),
-        nameof(MapText), nameof(P1Text), nameof(P2Text), nameof(NibpText),
-        nameof(Etco2Text), nameof(Fico2Text), nameof(DeltaText),
-        nameof(AlarmStatus), nameof(AlarmText), nameof(AlarmActive),
-        nameof(HrAlarm), nameof(Spo2Alarm), nameof(NibpAlarm),
-        nameof(RespAlarm), nameof(TempAlarm), nameof(Etco2Alarm),
-        nameof(HrNormal), nameof(Spo2Normal), nameof(NibpNormal),
-        nameof(RespNormal), nameof(TempNormal), nameof(Etco2Normal),
-        nameof(SoundText), nameof(ToolbarRightText),
-    };
+    private readonly Dictionary<string, object?> _lastValues = new();
 
     public MonitorViewModel(SimulationService service)
     {
@@ -305,12 +292,51 @@ public sealed class MonitorViewModel : INotifyPropertyChanged
         TickTrend(dt);
         TickStatus(dt);
 
-        foreach (var name in Names)
-            OnPropertyChanged(name);
+        NotifyIfChanged(nameof(TimeText), TimeText);
+        NotifyIfChanged(nameof(DateText), DateText);
+        NotifyIfChanged(nameof(PatientLabel), PatientLabel);
+        NotifyIfChanged(nameof(HrText), HrText);
+        NotifyIfChanged(nameof(Spo2Text), Spo2Text);
+        NotifyIfChanged(nameof(RespText), RespText);
+        NotifyIfChanged(nameof(Temp1Text), Temp1Text);
+        NotifyIfChanged(nameof(Temp2Text), Temp2Text);
+        NotifyIfChanged(nameof(StText), StText);
+        NotifyIfChanged(nameof(MapText), MapText);
+        NotifyIfChanged(nameof(P1Text), P1Text);
+        NotifyIfChanged(nameof(P2Text), P2Text);
+        NotifyIfChanged(nameof(NibpText), NibpText);
+        NotifyIfChanged(nameof(Etco2Text), Etco2Text);
+        NotifyIfChanged(nameof(Fico2Text), Fico2Text);
+        NotifyIfChanged(nameof(DeltaText), DeltaText);
+        NotifyIfChanged(nameof(AlarmStatus), AlarmStatus);
+        NotifyIfChanged(nameof(AlarmText), AlarmText);
+        NotifyIfChanged(nameof(AlarmActive), AlarmActive);
+        NotifyIfChanged(nameof(HrAlarm), HrAlarm);
+        NotifyIfChanged(nameof(Spo2Alarm), Spo2Alarm);
+        NotifyIfChanged(nameof(NibpAlarm), NibpAlarm);
+        NotifyIfChanged(nameof(RespAlarm), RespAlarm);
+        NotifyIfChanged(nameof(TempAlarm), TempAlarm);
+        NotifyIfChanged(nameof(Etco2Alarm), Etco2Alarm);
+        NotifyIfChanged(nameof(HrNormal), HrNormal);
+        NotifyIfChanged(nameof(Spo2Normal), Spo2Normal);
+        NotifyIfChanged(nameof(NibpNormal), NibpNormal);
+        NotifyIfChanged(nameof(RespNormal), RespNormal);
+        NotifyIfChanged(nameof(TempNormal), TempNormal);
+        NotifyIfChanged(nameof(Etco2Normal), Etco2Normal);
+        NotifyIfChanged(nameof(SoundText), SoundText);
+        NotifyIfChanged(nameof(ToolbarRightText), ToolbarRightText);
 
         AlarmFlash = AlarmActive && _tick % 12 < 6;
 
         WaveformsUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void NotifyIfChanged(string name, object? value)
+    {
+        if (_lastValues.TryGetValue(name, out var previous) && Equals(previous, value))
+            return;
+        _lastValues[name] = value;
+        OnPropertyChanged(name);
     }
 
     private void TickNibp(double dt)

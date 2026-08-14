@@ -16,6 +16,12 @@ public sealed class AnnotationOverview : FrameworkElement
 
     public event EventHandler<int>? SeekRequested;
 
+    private static readonly SolidColorBrush BgBrush = FrozenBrush(0x0B, 0x0B, 0x0B);
+    private static readonly SolidColorBrush ViewportFill = FrozenBrushArgb(60, 90, 160, 255);
+    private static readonly Pen ViewportBorder = FrozenPen(0x5A, 0xA0, 0xFF, 1);
+    private static readonly Dictionary<Color, Pen> ThinPens = new();
+    private static readonly Dictionary<Color, Pen> ThickPens = new();
+
     public void Refresh() => InvalidateVisual();
 
     protected override void OnRender(DrawingContext dc)
@@ -25,9 +31,7 @@ public sealed class AnnotationOverview : FrameworkElement
         double h = ActualHeight;
         if (w <= 1 || h <= 1) return;
 
-        var bg = new SolidColorBrush(Color.FromRgb(0x0B, 0x0B, 0x0B));
-        bg.Freeze();
-        dc.DrawRectangle(bg, null, new Rect(0, 0, w, h));
+        dc.DrawRectangle(BgBrush, null, new Rect(0, 0, w, h));
 
         var anns = Annotations;
         if (anns is null || anns.Count == 0 || SampleCount <= 0)
@@ -37,16 +41,13 @@ public sealed class AnnotationOverview : FrameworkElement
         }
 
         double xScale = w / SampleCount;
-        double midY = h / 2.0;
 
         foreach (var ann in anns)
         {
             if (ann.Sample < 0 || ann.Sample >= SampleCount) continue;
             double x = ann.Sample * xScale;
-            var brush = new SolidColorBrush(AnnotationPalette.For(ann));
-            brush.Freeze();
-            var pen = new Pen(brush, ann.Code == 5 || ann.Code == 28 ? 2.5 : 1.2);
-            pen.Freeze();
+            bool thick = ann.Code == 5 || ann.Code == 28;
+            var pen = AnnotationPen(thick ? ThickPens : ThinPens, AnnotationPalette.For(ann), thick ? 2.5 : 1.2);
             dc.DrawLine(pen, new Point(x, 2), new Point(x, h - 2));
         }
 
@@ -59,11 +60,41 @@ public sealed class AnnotationOverview : FrameworkElement
 
         double x0 = ViewStart / (double)SampleCount * w;
         double x1 = Math.Min(w, (ViewStart + ViewLength) / (double)SampleCount * w);
-        var fill = new SolidColorBrush(Color.FromArgb(60, 90, 160, 255));
-        fill.Freeze();
-        var border = new Pen(new SolidColorBrush(Color.FromRgb(0x5A, 0xA0, 0xFF)), 1);
-        border.Freeze();
-        dc.DrawRectangle(fill, border, new Rect(x0, 0, Math.Max(1, x1 - x0), h));
+        dc.DrawRectangle(ViewportFill, ViewportBorder, new Rect(x0, 0, Math.Max(1, x1 - x0), h));
+    }
+
+    private static SolidColorBrush FrozenBrush(byte r, byte g, byte b)
+    {
+        var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
+        brush.Freeze();
+        return brush;
+    }
+
+    private static SolidColorBrush FrozenBrushArgb(byte a, byte r, byte g, byte b)
+    {
+        var brush = new SolidColorBrush(Color.FromArgb(a, r, g, b));
+        brush.Freeze();
+        return brush;
+    }
+
+    private static Pen FrozenPen(byte r, byte g, byte b, double width)
+    {
+        var pen = new Pen(new SolidColorBrush(Color.FromRgb(r, g, b)), width);
+        pen.Freeze();
+        return pen;
+    }
+
+    private static Pen AnnotationPen(Dictionary<Color, Pen> map, Color color, double width)
+    {
+        if (map.TryGetValue(color, out var pen))
+            return pen;
+
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        pen = new Pen(brush, width);
+        pen.Freeze();
+        map[color] = pen;
+        return pen;
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
