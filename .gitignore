@@ -1,0 +1,52 @@
+# Build outputs
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vsconfig
+
+# Build results
+*.exe
+*.dll
+*.pdb
+*.cache
+*.dll.config
+*.exe.config
+*.log
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# dotnet tooling
+*.ncrunch*
+*_i.c
+*_p.c
+*.nunit
+*.orig
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# OS
+.DS_Store
